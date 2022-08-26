@@ -4,14 +4,14 @@ const chalk = require("chalk");
 const mongoose = require("mongoose");
 
 const connection = require("./db/connection");
-const { addNote, listNote} = require("./utils/notes.js");
+const { addNote, listNote, deleteNote } = require("./utils/notes.js");
 
 //Initial Options
 const topLevelQuestion = [{ 
 	type: "list", 
 	name: "options", 
 	message: "What would you like to do?", 
-	choices: ["add note","view notes", "exit"] },
+	choices: ["add note","view notes", "delete note","exit"] },
 ];
 
 //Question for adding a note
@@ -21,9 +21,16 @@ const addQuestion = [{
 	message: "What would you like to add? (type your note and hit enter):" },
 ];
 
+// Question for deleting note
+const deleteQuestion = [{ 
+	type: "input", 
+	name: "delete", 
+	message: "Which note would you like to delete? (type the notes number and hit enter):" },
+];
+
 //main function which runs the app
 const main = async () => {
-	console.log(chalk.blue(figlet.textSync("Notes App", { font: "isometric3" })));
+	console.log(chalk.blue(figlet.textSync("Notes App", { font: "Larry 3D" })));
 	console.log("Starting App...");
 	await connection();
 	console.log(" ");
@@ -41,14 +48,19 @@ const app = async () => {
 		note  the recursion here. Once we have carried out a task, we call app again to go back to the start
 		*/
 		app();
-	} else if(topLevelAnswer.options == "view notes"){
-		let list = await listNote()
-        console.log(chalk.red.bold("Listing all Notes:"))
-		console.log(chalk.green(list))
-		// console.log(chalk.green(`1. Walk the dog.\n2. Buy some milk.\n3. Wash the car.`))
+	} else if(topLevelAnswer.options == "view notes") {
+		await listNote();
 		
 		app();
-	} else if (topLevelAnswer.options == "exit") {
+	} else if(topLevelAnswer.options == "delete note") {
+		const answer = await inquirer.prompt(deleteQuestion);
+		await deleteNote(answer.delete);
+		setTimeout(() => {
+			app();
+		}, 2000);
+	}
+	
+	else if (topLevelAnswer.options == "exit") {
 		console.log("Ok, bye for now");
 		mongoose.disconnect();
 	}
